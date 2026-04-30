@@ -1,13 +1,19 @@
 {
   "version": 2,
-  "rewrites": [
+  "builds": [
     {
-      "source": "/api/(.*)",
-      "destination": "/Resources/Resources/backend/server.js"
+      "src": "Resources/Resources/backend/server.js",
+      "use": "@vercel/node"
     },
     {
-      "source": "/(.*)",
-      "destination": "/tp-modul-10/$1"
+      "src": "tp-modul-10/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
     }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "Resources/Resources/backend/server.js" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "tp-modul-10/$1" }
   ]
 }
