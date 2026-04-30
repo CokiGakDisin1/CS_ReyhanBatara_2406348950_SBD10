@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/Resources/Resources/backend/server.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/tp-modul-10/$1"
+    }
+  ]
+}
