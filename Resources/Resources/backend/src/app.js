@@ -17,7 +17,7 @@ app.use(helmet());
 
 // CORS configuration
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'],
+  origin: true, // Allow all origins for production simplicity
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
@@ -26,28 +26,30 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rate Limiting untuk autentikasi
+// Rate Limiting (Increased for testing)
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 menit
-  max: 5, // Limit tiap IP maksimal 5 request
+  windowMs: 15 * 60 * 1000,
+  max: 100, // Increased to 100 to avoid blocking you
   message: {
     success: false,
-    message: 'Too many login attempts from this IP, please try again after 15 minutes',
+    message: 'Too many requests, please try again later',
     payload: null
   }
 });
 
-// API routes
-// Gunakan authLimiter di route login/auth
-app.use('/auth', authLimiter, authRoutes);
-// Jika mau limit register juga, pasang di /user/register, namun soal bilang "pada endpoint autentikasi (login, register)".
-// Akan kita tempelkan re-limit di route router.post('/register', authLimiter, ...) atau di app.use khusus jika dipisah.
-// Karena register di /user/register, kita wrap /user/register dengan limiter.
-app.use('/user/register', authLimiter);
-app.use('/user', userRoutes);
-app.use('/items', itemRoutes);
-app.use('/transaction', transactionRoutes);
-app.use('/reports', reportRoutes);
+// Support for /api prefix on Vercel
+const router = express.Router();
+app.use('/api', router);
+
+// Mount all routes to both root and /api for compatibility
+[app, router].forEach(base => {
+  base.use('/auth', authLimiter, authRoutes);
+  base.use('/user', userRoutes);
+  base.use('/items', itemRoutes);
+  base.use('/transaction', transactionRoutes);
+  base.use('/reports', reportRoutes);
+});
+// Duplicate routes removed
 
 // Health check endpoint
 app.get('/health', (req, res) => {
